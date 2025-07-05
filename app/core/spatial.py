@@ -27,7 +27,10 @@ def find_locations_within_distance(
     ).all()
 
 
-def calculate_distance(db: Session, location_id: int, latitude: float, longitude: float) -> float:
+def calculate_distance(db: Session,
+                       location_id: int,
+                       latitude: float,
+                       longitude: float) -> float:
     """
     Calculate exact distance between a location and a point using ST_Distance.
     Returns distance in meters.
