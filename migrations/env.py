@@ -59,10 +59,20 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    # context.configure(
-    #     include_schemas=False,  # Ignore system schemas
-    #     include_object=lambda name, obj: not name.startswith('pg_') and name not in ('featnames', 'other_system_tables')
-    # )
+    def include_object(object, name, type_, reflected, compare_to):
+        """
+        Exclude PostGIS system tables from autogenerate
+        """
+        if type_ == "table" and name in [
+            'topology', 'layer', 'spatial_ref_sys', 'geocode_settings',
+            'geocode_settings_default', 'direction_lookup', 'secondary_unit_lookup',
+            'state_lookup', 'street_type_lookup', 'place_lookup', 'county_lookup',
+            'countysub_lookup', 'zip_lookup_all', 'zip_lookup_base', 'zip_lookup',
+            'zip_state', 'zip_state_loc', 'pagc_gaz', 'loader_platform', 'addr'
+        ]:
+            return False
+        return True
+
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
@@ -71,7 +81,9 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection,
+            target_metadata=target_metadata,
+            include_object=include_object,
         )
 
         with context.begin_transaction():
